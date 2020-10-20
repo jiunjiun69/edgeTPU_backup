@@ -15,13 +15,10 @@
 # limitations under the License.
 
 """A demo which runs object detection on camera frames.
-
 export TEST_DATA=/usr/lib/python3/dist-packages/edgetpu/test_data
-
 Run face detection model:
 python3 -m edgetpuvision.detect \
   --model ${TEST_DATA}/mobilenet_ssd_v2_face_quant_postprocess_edgetpu.tflite
-
 Run coco model:
 python3 -m edgetpuvision.detect \
   --model ${TEST_DATA}/mobilenet_ssd_v2_coco_quant_postprocess_edgetpu.tflite \
@@ -34,11 +31,10 @@ import colorsys
 import itertools
 import time
 from pytz import utc,timezone
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
 import datetime
 import time
+import mysql.connector   #import phpmysql
+
 
 from edgetpu.detection.engine import DetectionEngine
 
@@ -61,10 +57,14 @@ BBox.__str__ = lambda self: 'BBox(x=%.2f y=%.2f w=%.2f h=%.2f)' % self
 Object = collections.namedtuple('Object', ('id', 'label', 'score', 'bbox'))
 Object.__str__ = lambda self: 'Object(id=%d, label=%s, score=%.2f, %s)' % self
 
-#cred = credentials.Certificate('/usr/lib/python3/dist-packages/edgetpuvision/serviceAccount.json')
-#firebase_admin.initialize_app(cred)
-#db = firestore.client()
+###connect mysql
+hostname = '140.127.32.14'
+username = 'fishai'
+password = 'fishai1209'
+database = 'fishai'
 
+mysqldb = mysql.connector.connect( host=hostname, user=username, passwd=password, db=database )
+mycursor = mysqldb.cursor()
 
 def size_em(length):
     return '%sem' % str(0.6 * (length + 1))
@@ -188,39 +188,50 @@ def render_gen(args):
 
             if args.print:
                 print_results(inference_rate, objs)
+                
+                
+#========================================updata==========================================================
+            if objs:
+               positsion = ""
+               string_id = ""
+               for i in range(len(objs)):
+                   socre = objs[i][2]
+#==================score======================
+                   if socre > 0.8:
+#==================score======================
+                      objid = objs[i][0]
+                      objx = objs[i][3][0]
+                      objy = objs[i][3][1]
+                      objw = objs[i][3][2]
+                      objh = objs[i][3][3]
+                      x = ((objx+objx+objw)/2)*1280
+                      y = ((objy+objy+objh)/2)*720
+                      if i == (len(objs)-1):
+                         positsion = positsion + (str(round(x,3))+","+str(round(y,3)))
+                         string_id = string_id+(str(objid)+" ")
+                      else:
+                         positsion = positsion + (str(round(x,3))+","+str(round(y,3))+" ")
+                         string_id = string_id+(str(objid)+" ")
+               if positsion:
+                  now = datetime.datetime.now()
+                  thistime = now.strftime('%H%M%S%f')[:-3]
+                  print('time',now.strftime('%H%M%S%f')[:-3])
+                  print('positsion',positsion)
+                  print('label',string_id)
+                  #doc = {
+                  #'jarid':string_id,    #label
+                  #'positsion':positsion,   #positsion
+                  #'timestamp':thistime  #timestamp
+                  #}
+                  #try:
+                  data = ('1',"'"+positsion+"'","'"+str(thistime)+"'")
+                  mycursor.execute("insert into original values(%s, %s, %s)" % data)
+                  mysqldb.commit()
+                  #except:  
+                  #  mysqldb.rollback()
+#========================================updata==========================================================
 
-            #if objs:
-            #   string = ""
-            #   string_id = ""
-             #  for i in range(len(objs)):
-              #     socre = objs[i][2]
-               #    if socre > 0.5:
-                #      objid = objs[i][0]
-                 #     objx = objs[i][3][0]
-                  #    objy = objs[i][3][1]
-                   #   objw = objs[i][3][2]
-                    #  objh = objs[i][3][3]
-                    #  x = ((objx+objx+objw)/2)*1280
-                    #  y = ((objy+objy+objh)/2)*720
-                    #  if i == (len(objs)-1):
-                     #    string = string+(str(round(x,3))+","+str(round(y,3)))
-                     #    string_id = string_id+(str(objid)+" ")
-                     # else:
-                      #   string = string+(str(round(x,3))+","+str(round(y,3))+" ")
-                     #    string_id = string_id+(str(objid)+" ")
-              # if string:
-              #    now = datetime.datetime.now()
-               #   thistime = now.strftime('%H%M%S%f')[:-3]
-                #  print(now.strftime('%H%M%S%f')[:-3])
-               #   print(string)
-                #  print(string_id)
-                #  doc = {
-                #  'label':string_id,
-                 # 'positsion':string,
-                #  'timeid':thistime
-                #  }
-                #  doc_ref = db.collection("time").document(thistime)
-                #  doc_ref.set(doc)
+
             title = titles[engine]
             output = overlay(title, objs, get_color, inference_time, inference_rate, layout)
         else:
