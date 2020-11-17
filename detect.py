@@ -197,7 +197,7 @@ def render_gen(args):
                for i in range(len(objs)):
                    socre = objs[i][2]
 #==================score======================
-                   if socre > 0.8:
+                   if socre > 0.7:
 #==================score======================
                       objid = objs[i][0]
                       objx = objs[i][3][0]
@@ -224,7 +224,7 @@ def render_gen(args):
                   #'timestamp':thistime  #timestamp
                   #}
                   #try:
-                  data = ('1',"'"+positsion+"'","'"+str(thistime)+"'")
+                  data = ('2',"'"+positsion+"'","'"+str(thistime)+"'")
                   mycursor.execute("insert into original values(%s, %s, %s)" % data)
                   mysqldb.commit()
                   #except:  
