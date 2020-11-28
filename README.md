@@ -16,7 +16,7 @@ edgetpu_detect --source /dev/video1:YUY2:1280x720:10/1 --model detect_edgetpu.tf
 ## 執行測試
 ```
 edgetpu_detect_server \
---source /dev/video1:YUY2:800x600:24/1  \
+--source /dev/video1:YUY2:1280x720:24/1  \
 --model detect_edgetpu.tflite
 ```
 
@@ -26,4 +26,11 @@ cd /usr/lib/python3/dist-packages/edgetpuvision/streaming
 ```
 ```
 sudo nano server.py
+```
+
+
+## 須先安裝的套件
+```
+pip3 install pytz
+pip3 install mysql-connector-python
 ```
