@@ -32,6 +32,7 @@ import itertools
 import time
 from pytz import utc,timezone
 import datetime
+import os
 import time
 import mysql.connector   #import phpmysql
 
@@ -58,10 +59,10 @@ Object = collections.namedtuple('Object', ('id', 'label', 'score', 'bbox'))
 Object.__str__ = lambda self: 'Object(id=%d, label=%s, score=%.2f, %s)' % self
 
 ###connect mysql
-hostname = '140.127.32.14'
-username = 'fishai'
-password = 'fishai1209'
-database = 'fishai'
+hostname = os.environ["FISHAI_DB_HOST"]
+username = os.environ["FISHAI_DB_USER"]
+password = os.environ["FISHAI_DB_PASSWORD"]
+database = os.environ.get("FISHAI_DB_NAME", "fishai")
 
 mysqldb = mysql.connector.connect( host=hostname, user=username, passwd=password, db=database )
 mycursor = mysqldb.cursor()
